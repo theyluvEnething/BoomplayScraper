@@ -3,21 +3,36 @@ import requests
 from bs4 import BeautifulSoup
 
 class BoomplayScraper:
-    def get_images(self, url: str):    
 
+    def get_images(self, url: str):    
         request = requests.get(url)
         content = request.content
         soup = BeautifulSoup(content, "html.parser")
 
         song_container = soup.find("ul", class_="morePart_albums")
-
         images = []
         image_urls = song_container.find_all("div", class_="img hasToPlay_icon lazyImg")
-        
+    
         for image_url in image_urls:
             images.append(image_url['data-bgurl'])
             print(image_url['data-bgurl'])
+        print("\n")
+        return images
+    
+    def extract_content(self):
+        content = ""
+        with open("content.html", "r", encoding="UTF-8") as html:
+            for line in html:
+                content += line
+        soup = BeautifulSoup(content, "html.parser")
 
+        song_container = soup.find("ul", class_="morePart_albums")
+        images = []
+        image_urls = song_container.find_all("div", class_="img hasToPlay_icon lazyImg")
+    
+        for image_url in image_urls:
+            images.append(image_url['data-bgurl'])
+            print(image_url['data-bgurl'])
         print("\n")
         return images
     
@@ -39,15 +54,15 @@ class BoomplayScraper:
                 for chunk in response.iter_content(chunk_size=128):
                     image.write(chunk)
     
+    def run(self, artist_url = "", html_file=False):
 
-    def run(self, artist_url: str):
-
-        images = self.get_images(artist_url)
-        
+        if not html_file:
+            images = self.get_images(artist_url)
+        else:
+            images = self.extract_content()
+            
         for image in images:
             self.download(image)
-
-
 
 if __name__ == "__main__":
 
@@ -65,10 +80,20 @@ if __name__ == "__main__":
     print("                                            \\__|                     \\______/                                        \\__|                          ")
     print("==================================================================================================================================================")
 
+    print("Please input desired mode: ")
+    print("[0] -> Use artist url")
+    print("[1] -> Use content.html")
+    mode = int(input("> "))
 
-    url = input("Please enter artists url: ")
-    scraper = BoomplayScraper()
-    scraper.run(url)
+    if mode == 0:
+        url = input("Please enter artists url: ")
+        scraper = BoomplayScraper()
+        scraper.run(artist_url=url)
+        print ("\nSuccesfully downloaded all images.")
+    elif mode == 1:
+        print("Make sure the content.html file is filled with the page source!")
+        scraper = BoomplayScraper()
+        scraper.run(html_file=True)
+        print ("\nSuccesfully downloaded all images.")
 
-    print ("\nSuccesfully downloaded all images.")
     print("=======================================================================================================================================================================")
